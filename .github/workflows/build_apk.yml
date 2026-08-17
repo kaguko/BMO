@@ -1,0 +1,110 @@
+name: 🤖 Build BMO Android APK
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:   # Cho phép chạy thủ công từ GitHub UI
+
+jobs:
+  build-apk:
+    name: 📱 Build APK with Buildozer
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+
+    steps:
+      # 1. Checkout source code
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Setup Python 3.10
+      - name: 🐍 Setup Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      # 3. Cài đặt system dependencies cho Android build
+      - name: 📦 Install system dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y \
+            python3-pip \
+            build-essential \
+            git \
+            zip \
+            unzip \
+            openjdk-17-jdk \
+            libffi-dev \
+            libssl-dev \
+            libzbar0 \
+            autoconf \
+            libtool \
+            pkg-config \
+            zlib1g-dev \
+            libncurses5-dev \
+            libncursesw5-dev \
+            cmake \
+            libltdl-dev \
+            ccache \
+            libsdl2-dev \
+            libsdl2-image-dev \
+            libsdl2-mixer-dev \
+            libsdl2-ttf-dev \
+            libportmidi-dev \
+            libswscale-dev \
+            libavformat-dev \
+            libavcodec-dev \
+            libunwind-dev \
+            espeak \
+            espeak-data \
+            libespeak-dev
+
+      # 4. Cài đặt Buildozer và dependencies Python
+      - name: 🔧 Install Buildozer
+        run: |
+          pip install --upgrade pip
+          pip install buildozer==1.5.0
+          pip install cython==0.29.37
+
+      # 5. Cache Android SDK / NDK để tăng tốc build lần sau
+      - name: 💾 Cache Android SDK/NDK
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.buildozer
+            ~/.android
+          key: android-sdk-ndk-${{ runner.os }}-v1
+          restore-keys: |
+            android-sdk-ndk-${{ runner.os }}-
+
+      # 6. Chấp nhận Android SDK licenses
+      - name: ✅ Accept Android SDK licenses
+        run: |
+          mkdir -p ~/.android
+          touch ~/.android/repositories.cfg
+          yes | ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses || true
+
+      # 7. Build APK debug với Buildozer
+      - name: 🏗️ Build APK (Debug)
+        run: |
+          buildozer android debug
+        env:
+          BUILDOZER_BUILD_DIR: .buildozer
+          ANDROIDAPI: "33"
+          ANDROIDMINAPI: "26"
+
+      # 8. Upload APK sebagai artifact
+      - name: 📤 Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BMO-Adventure-Time-APK
+          path: bin/*.apk
+          retention-days: 30
+
+      # 9. Hiển thị thông tin APK
+      - name: 📊 APK Build Summary
+        if: success()
+        run: |
+          echo "✅ Build thành công!"
+          ls -lh bin/*.apk 2>/dev/null && echo "📱 APK đã sẵn sàng để tải về!" || echo "⚠️ Không tìm thấy APK"

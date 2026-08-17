@@ -43,8 +43,19 @@ Dự án mô phỏng trọn vẹn nhân vật **BMO** từ bộ phim hoạt hìn
 - **🎹 Chiptune Jukebox & Synth Piano**: Bàn phím đàn 8-bit gõ phím máy tính (`A, S, D, F, G, H, J, K` hoặc `1 - 8`) và phát các bản nhạc 8-bit Adventure Time kinh điển.
 - **🪞 Football in the Mirror Mode**: Đóng kịch tương tác chia đôi màn hình với Football trong chiếc gương phòng tắm.
 
-### 5. 🔊 Âm thanh Chiptune Synth 8-Bit
-- Tự động sinh sóng âm thanh (Square, Triangle, Sawtooth, Sine, Noise) trực tiếp bằng `numpy` và `pygame.mixer`, không phụ thuộc bất kỳ file âm thanh ngoài nào.
+### 5. 🎭 Biểu cảm & Tương tác "Độc lạ BMO" (New!)
+- **🪞 Chế độ Football (Người bạn trong gương)**:
+  - Tự động kích hoạt khi treo máy (Idle) hoặc gõ *"Football"* trong chat / phím `7`.
+  - Màn hình chia đôi: BMO tự đối thoại với chính mình trong gương (Football) với tông giọng và biểu cảm hoán đổi liên tục.
+- **🪫 BMO "Sập nguồn" (Low Battery) & Thay pin tương tác**:
+  - Pin tiêu hao theo thời gian (hoặc phím `L` / chat *"hết pin"*). Màn hình mờ dần, nhiễu sóng glitch và BMO rên rỉ *"BMO cần pin..."* trước khi tắt lịm.
+  - Người dùng nhấn giữ phím **`P`** hoặc **`SPACE`** để mở nắp lưng và lắp 2 viên pin AA mới để hồi sinh BMO.
+- **🤮 BMO "Nôn mửa" băng game (Cartridge Spit & Insert)**:
+  - Khi chuyển từ trò chơi này sang trò khác (hoặc phím `1 - 4`), BMO phồng má nhăn mặt nôn nhổ băng cũ văng ra kèm âm thanh *"Khục... ọc!"* rồi cắm băng mới vào với tiếng *"Click-clack!"*.
+
+### 6. 🔊 Âm thanh Chiptune Synth 8-Bit & TTS chuẩn Lore
+- Nâng cao độ DSP thời gian thực (+4.2 semitones) tái hiện đúng chất giọng robot cao the thé, ngây thơ của BMO (Niki Yang).
+- Tự động sinh sóng âm thanh (Square, Triangle, Sawtooth, Sine, Noise) trực tiếp bằng `numpy` và `pygame.mixer`.
 
 ---
 
@@ -53,16 +64,17 @@ Dự án mô phỏng trọn vẹn nhân vật **BMO** từ bộ phim hoạt hìn
 | Phím | Chức năng |
 |---|---|
 | `ENTER` | Mở thanh gõ câu hỏi trò chuyện với BMO |
-| `ESC` hoặc `TAB` | Mở/Đóng Menu điều khiển chính |
-| `SPACE` | BMO chào / Tuyệt chiêu BMO Chop! |
-| `1` - `4` | Chơi nhanh 4 Mini-Games |
-| `5` - `7` | Mở nhanh Timer / Jukebox / Gương Football |
+| `ESC` / `TAB` | Mở/Đóng Menu điều khiển chính |
+| `SPACE` | BMO chào / BMO Chop! / Tương tác nhanh |
+| `1` - `4` | Chơi 4 Mini-Games (Kèm hiệu ứng nôn băng) |
+| `5` - `7` | Mở Timer / Jukebox / Gương Football |
+| `L` | Giả lập BMO Sập nguồn (Hết pin) |
+| `P` | Giữ phím để Thay 2 pin AA khi BMO hết pin |
 | `E` | Đổi biểu cảm khuôn mặt ngẫu nhiên |
-| `V` | Đổi giọng nói Text-to-Speech |
-| `M` | Bật / Tắt âm thanh SFX |
-| `C` | Bật / Tắt hiệu ứng CRT Scanlines cổ điển |
-| `B` | Bật / Tắt viền thân máy GameBoy BMO |
-| `H` | Xem hướng dẫn trợ giúp |
+| `V` | Đổi chế độ giọng nói TTS (Lore / Chibi / Natural) |
+| `M` | Bật / Tắt âm thanh SFX 8-bit |
+| `C` / `B` | Bật / Tắt hiệu ứng CRT Scanlines & Khung Bezel |
+| `H` | Xem bảng hướng dẫn chi tiết |
 
 ---
 
