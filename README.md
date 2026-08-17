@@ -55,7 +55,7 @@ Dự án mô phỏng trọn vẹn nhân vật **BMO** từ bộ phim hoạt hìn
 
 ### 6. 🔊 Âm thanh Chiptune Synth 8-Bit & TTS chuẩn Lore
 - Nâng cao độ DSP thời gian thực (+4.2 semitones) tái hiện đúng chất giọng robot cao the thé, ngây thơ của BMO (Niki Yang).
-- Tự động sinh sóng âm thanh (Square, Triangle, Sawtooth, Sine, Noise) trực tiếp bằng `numpy` và `pygame.mixer`.
+- Tự động sinh sóng âm thanh (Square, Triangle, Sawtooth, Sine, Noise) trực tiếp bằng `pygame.mixer`.
 
 ---
 
@@ -82,7 +82,7 @@ Dự án mô phỏng trọn vẹn nhân vật **BMO** từ bộ phim hoạt hìn
 
 1. **Yêu cầu môi trường**: Python 3.8+ với các thư viện:
    ```bash
-   pip install pygame pyttsx3 numpy
+   pip install pygame pyttsx3
    ```
 2. **Khởi chạy**:
    - Nhấp đúp vào file `run_bmo.bat` (trên Windows)

@@ -11,7 +11,7 @@ source.include_exts = py,png,jpg,kv,atlas,ttf,wav,ogg,mp3
 source.include_patterns = bmo/**/*.py,bmo/**
 
 version = 1.0.0
-requirements = python3,pygame,numpy,pyttsx3,espeak
+requirements = python3,pygame,pyttsx3,espeak
 
 # Orientation: portrait cho điện thoại
 orientation = portrait
