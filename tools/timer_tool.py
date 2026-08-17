@@ -75,6 +75,30 @@ class TimerTool:
             elif event.key == pygame.K_4:
                 self.reset(45)
 
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            mx, my = event.pos
+            # Nhấp nút thoát ở góc
+            if my < 45 and mx > self.width - 100:
+                self.exit_requested = True
+                return
+            # Nhấp các nút preset 5m, 15m, 25m, 45m
+            py = self.height - 130
+            if py <= my <= py + 34:
+                presets = [5, 15, 25, 45]
+                for i, m in enumerate(presets):
+                    px = self.width // 2 - 180 + i * 120
+                    if px - 45 <= mx <= px + 45:
+                        self.reset(m)
+                        synth.play('coin')
+                        return
+            # Nhấp vào mặt đồng hồ -> Start/Pause
+            if self.is_alarm_ringing:
+                self.is_alarm_ringing = False
+            else:
+                self.is_running = not self.is_running
+                self.last_tick = time.time()
+                synth.play('bloop')
+
     def update(self):
         now = time.time()
         

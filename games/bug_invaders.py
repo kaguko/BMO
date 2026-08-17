@@ -81,6 +81,10 @@ class BugInvadersGame(BaseGame):
         if event.type == pygame.KEYDOWN:
             if event.key in [pygame.K_SPACE, pygame.K_w, pygame.K_UP]:
                 self._shoot()
+        elif event.type in [pygame.MOUSEBUTTONDOWN, pygame.MOUSEMOTION]:
+            if pygame.mouse.get_pressed()[0]:
+                self.ship_x = max(10, min(self.width - self.ship_w - 10, event.pos[0] - self.ship_w // 2))
+                self._shoot()
 
     def _shoot(self):
         if self.laser_cooldown <= 0:
@@ -97,13 +101,18 @@ class BugInvadersGame(BaseGame):
         if self.is_game_over or self.is_paused:
             return
 
-        # Điều khiển di chuyển BMO Defender
+        # Điều khiển di chuyển BMO Defender (Phím bấm + Chuột/Cảm ứng)
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT] or keys[pygame.K_a]:
             self.ship_x = max(10, self.ship_x - self.ship_speed)
         if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
             self.ship_x = min(self.width - self.ship_w - 10, self.ship_x + self.ship_speed)
         if keys[pygame.K_SPACE]:
+            self._shoot()
+
+        if pygame.mouse.get_pressed()[0]:
+            mx = pygame.mouse.get_pos()[0]
+            self.ship_x = max(10, min(self.width - self.ship_w - 10, mx - self.ship_w // 2))
             self._shoot()
 
         if self.laser_cooldown > 0:

@@ -1,7 +1,8 @@
 """
-BMO Face Renderer & Animation Engine
+BMO Face Renderer & Animation Engine (Enhanced Edition)
 Vẽ khuôn mặt BMO với hơn 10 biểu cảm, chớp mắt tự nhiên, mắt dõi theo chuột,
-má hồng, hiệu ứng giọt nước mắt, chữ Zzz bay bổng và khung thân máy retro.
+chỉ báo pin sập nguồn, hiệu ứng nôn nhổ/nhét băng game (Cartridge Spit/Insert),
+và màn hình thay pin tương tác.
 """
 import pygame
 import math
@@ -43,8 +44,10 @@ class FaceRenderer:
         
         # Phông chữ
         pygame.font.init()
-        self.font_subtitle = pygame.font.SysFont("Consolas, Arial, sans-serif", 20, bold=True)
-        self.font_retro = pygame.font.SysFont("Consolas, monospace", 16)
+        self.font_subtitle = pygame.font.SysFont("Segoe UI, Arial, sans-serif", 20, bold=True)
+        self.font_hud = pygame.font.SysFont("Segoe UI, Arial, sans-serif", 13, bold=True)
+        self.font_cartridge = pygame.font.SysFont("Segoe UI, Arial, sans-serif", 15, bold=True)
+        self.font_battery_alert = pygame.font.SysFont("Segoe UI, Arial, sans-serif", 24, bold=True)
         self.font_zzz = pygame.font.SysFont("Arial", 22, bold=True)
 
     def _create_scanline_surface(self):
@@ -146,7 +149,7 @@ class FaceRenderer:
         if self.current_expression == Expression.HEART_EYES:
             self.heart_pulse = 1.0 + 0.15 * math.sin(self.anim_frame * 0.2)
 
-    def draw(self, surface, subtitle=""):
+    def draw(self, surface, subtitle="", battery_level=100):
         """Vẽ toàn bộ khuôn mặt BMO lên bề mặt."""
         # 1. Vẽ nền màn hình xanh ngọc
         surface.fill(BMO_TEAL)
@@ -168,17 +171,71 @@ class FaceRenderer:
         # 5. VẼ CÁC HIỆU ỨNG ĐẶC BIỆT (Zzz, nốt nhạc, nước mắt, glitch)
         self._draw_special_effects(surface, left_eye_center, right_eye_center)
         
-        # 6. VẼ SCANLINES CRT
+        # 6. HIỆU ỨNG SẮP HẾT PIN (DIMMING & LOW BATTERY GLITCH)
+        if battery_level < 25:
+            self._draw_low_battery_effects(surface, battery_level)
+
+        # 7. VẼ SCANLINES CRT
         if self.show_scanlines:
             surface.blit(self.scanline_surface, (0, 0))
             
-        # 7. VẼ PHỤ ĐỀ / LỜI THOẠI CỦA BMO
+        # 8. VẼ BIỂU TƯỢNG PIN Ở GÓC TRÊN PHẢI (BATTERY HUD)
+        self._draw_battery_hud(surface, battery_level)
+
+        # 9. VẼ PHỤ ĐỀ / LỜI THOẠI CỦA BMO
         if subtitle:
             self._draw_subtitle(surface, subtitle)
             
-        # 8. VẼ THÂN MÁY BMO (NẾU BẬT BEZEL)
+        # 10. VẼ THÂN MÁY BMO (NẾU BẬT BEZEL)
         if self.show_bezel:
             self._draw_bmo_bezel(surface)
+
+    def _draw_battery_hud(self, surface, battery_level):
+        """Vẽ biểu tượng thanh pin retro ở góc trên phải."""
+        bx = self.width - 95
+        by = 14
+        bw, bh = 42, 18
+        
+        # Vỏ ngoài pin
+        pygame.draw.rect(surface, BMO_DARK_TEAL, (bx, by, bw, bh), 2, border_radius=4)
+        # Cực dương pin (nhỏ bên phải)
+        pygame.draw.rect(surface, BMO_DARK_TEAL, (bx + bw, by + 4, 4, 10), border_radius=1)
+        
+        # Màu thanh pin theo mức
+        if battery_level > 35:
+            b_col = BMO_GREEN
+        elif battery_level > 15:
+            b_col = BMO_YELLOW
+        else:
+            # Nhấp nháy đỏ báo động
+            b_col = BMO_HEART_RED if (self.anim_frame // 15) % 2 == 0 else (120, 30, 30)
+            
+        inner_w = int((bw - 6) * max(0.05, battery_level / 100.0))
+        pygame.draw.rect(surface, b_col, (bx + 3, by + 3, inner_w, bh - 6), border_radius=2)
+        
+        # Số % pin
+        pct_str = f"{int(battery_level)}%"
+        p_surf = self.font_hud.render(pct_str, True, BMO_DARK_TEAL if battery_level > 15 else BMO_HEART_RED)
+        surface.blit(p_surf, (bx - 38, by + 1))
+
+    def _draw_low_battery_effects(self, surface, battery_level):
+        """Tạo hiệu ứng mờ dần và glitch khi pin yếu."""
+        # 1. Lớp phủ tối dần (Dimming)
+        darkness = int((25 - battery_level) * 8.5)
+        darkness = min(220, max(15, darkness))
+        dim_surf = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+        dim_surf.fill((10, 15, 12, darkness))
+        surface.blit(dim_surf, (0, 0))
+        
+        # 2. Vệt glitch giật màn hình
+        if battery_level <= 15 and random.random() < 0.35:
+            for _ in range(3):
+                gy = random.randint(0, self.height)
+                gh = random.randint(6, 25)
+                shift = random.randint(-15, 15)
+                sub_rect = pygame.Rect(0, gy, self.width, gh)
+                sub_surf = surface.subsurface(sub_rect).copy()
+                surface.blit(sub_surf, (shift, gy))
 
     def _draw_eyes(self, surface, left_eye, right_eye, radius):
         """Vẽ cặp mắt BMO với đa dạng trạng thái."""
@@ -189,6 +246,14 @@ class FaceRenderer:
             # Hai đường thẳng nằm ngang
             pygame.draw.line(surface, BMO_BLACK, (left_eye[0] - 26, left_eye[1]), (left_eye[0] + 26, left_eye[1]), 8)
             pygame.draw.line(surface, BMO_BLACK, (right_eye[0] - 26, right_eye[1]), (right_eye[0] + 26, right_eye[1]), 8)
+            return
+
+        # Mắt nôn mửa nhổ băng game: > <
+        if expr == Expression.VOMIT:
+            pygame.draw.line(surface, BMO_BLACK, (left_eye[0] - 24, left_eye[1] - 14), (left_eye[0] + 20, left_eye[1]), 7)
+            pygame.draw.line(surface, BMO_BLACK, (left_eye[0] - 24, left_eye[1] + 14), (left_eye[0] + 20, left_eye[1]), 7)
+            pygame.draw.line(surface, BMO_BLACK, (right_eye[0] + 24, right_eye[1] - 14), (right_eye[0] - 20, right_eye[1]), 7)
+            pygame.draw.line(surface, BMO_BLACK, (right_eye[0] + 24, right_eye[1] + 14), (right_eye[0] - 20, right_eye[1]), 7)
             return
 
         # Mắt cười hạnh phúc / Hát: ^ ^ (Vòng cung ngược)
@@ -207,7 +272,6 @@ class FaceRenderer:
 
         # Mắt giận dữ BMO Chop: \ /
         if expr == Expression.ANGRY_CHOP:
-            # Mắt xếch quyết tâm
             pygame.draw.polygon(surface, BMO_BLACK, [
                 (left_eye[0] - 24, left_eye[1] - 12),
                 (left_eye[0] + 24, left_eye[1] + 16),
@@ -220,7 +284,6 @@ class FaceRenderer:
                 (right_eye[0] - 16, right_eye[1] + 24),
                 (right_eye[0] + 24, right_eye[1] + 6)
             ])
-            # Chân mày nhíu lại
             pygame.draw.line(surface, BMO_BLACK, (left_eye[0] - 30, left_eye[1] - 25), (left_eye[0] + 20, left_eye[1] - 10), 6)
             pygame.draw.line(surface, BMO_BLACK, (right_eye[0] + 30, right_eye[1] - 25), (right_eye[0] - 20, right_eye[1] - 10), 6)
             return
@@ -262,8 +325,6 @@ class FaceRenderer:
         if is_blushing or self.blush_intensity > 0.1:
             alpha = int(180 * max(self.blush_intensity, 1.0 if is_blushing else 0.0))
             blush_surf = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
-            
-            # Má trái & Má phải (hình bầu dục hồng pastel)
             pygame.draw.ellipse(blush_surf, (*BMO_ROSE, alpha), (left_eye[0] - 50, left_eye[1] + 28, 36, 18))
             pygame.draw.ellipse(blush_surf, (*BMO_ROSE, alpha), (right_eye[0] + 14, right_eye[1] + 28, 36, 18))
             surface.blit(blush_surf, (0, 0))
@@ -274,6 +335,12 @@ class FaceRenderer:
         cx = self.width // 2
         top = self.height // 2 + 38
 
+        # 0. Miệng nôn mửa nhổ băng game
+        if expr == Expression.VOMIT:
+            pygame.draw.ellipse(surface, BMO_BLACK, (cx - 36, top - 2, 72, 48))
+            pygame.draw.ellipse(surface, (60, 110, 90), (cx - 28, top + 6, 56, 34))
+            return
+
         # 1. Trạng thái nói chuyện (Talking Lip-Sync bập bẹ 4 khung hình)
         if expr == Expression.TALKING:
             frame = (self.anim_frame // 6) % 4
@@ -283,26 +350,21 @@ class FaceRenderer:
                 pygame.draw.rect(surface, BMO_BLACK, (cx - 20, top + 6, 40, 20), border_radius=4)
             elif frame == 2:
                 pygame.draw.rect(surface, BMO_BLACK, (cx - 16, top, 32, 30), border_radius=5)
-                # Khe lưỡi hồng bên trong
                 pygame.draw.rect(surface, BMO_ROSE, (cx - 8, top + 18, 16, 8), border_radius=3)
             else:
-                # Miệng cười nói
                 pygame.draw.polygon(surface, BMO_BLACK, [(cx - 26, top + 8), (cx + 26, top + 8), (cx + 18, top + 26), (cx - 18, top + 26)])
             return
 
         # 2. Cười to / Vui sướng
         if expr in [Expression.HAPPY, Expression.LAUGH]:
-            # Miệng hình bán nguyệt cười to
             rect_m = pygame.Rect(cx - 30, top - 4, 60, 42)
             pygame.draw.arc(surface, BMO_BLACK, rect_m, math.pi, 2 * math.pi, 8)
             pygame.draw.line(surface, BMO_BLACK, (cx - 30, top + 17), (cx + 30, top + 17), 7)
-            # Lưỡi hồng bên trong
             pygame.draw.circle(surface, BMO_ROSE, (cx, top + 14), 10)
             return
 
         # 3. BMO Chop! (Tức giận quyết tâm)
         if expr == Expression.ANGRY_CHOP:
-            # Miệng mở gầm gừ hình chữ nhật răng cưa
             pygame.draw.rect(surface, BMO_BLACK, (cx - 28, top + 4, 56, 22), border_radius=3)
             pygame.draw.line(surface, BMO_WHITE, (cx - 26, top + 15), (cx + 26, top + 15), 3)
             return
@@ -334,7 +396,6 @@ class FaceRenderer:
     def _draw_heart(self, surface, x, y, size):
         """Vẽ hình trái tim pixel/vector."""
         half = size // 2
-        # Vẽ 2 vòng tròn tai tim + 1 tam giác đáy
         pygame.draw.circle(surface, BMO_HEART_RED, (x - half // 2, y - half // 3), half)
         pygame.draw.circle(surface, BMO_HEART_RED, (x + half // 2, y - half // 3), half)
         points = [
@@ -346,7 +407,6 @@ class FaceRenderer:
 
     def _draw_special_effects(self, surface, left_eye, right_eye):
         """Vẽ các hiệu ứng giọt nước mắt, Zzz, nốt nhạc bay."""
-        # Giọt nước mắt rơi khi khóc
         if self.current_expression == Expression.CRYING:
             ty = left_eye[1] + 15 + self.teardrop_y
             pygame.draw.circle(surface, BMO_TEAR_BLUE, (left_eye[0] - 10, ty), 8)
@@ -356,20 +416,17 @@ class FaceRenderer:
             pygame.draw.circle(surface, BMO_TEAR_BLUE, (right_eye[0] + 10, ty_r), 8)
             pygame.draw.polygon(surface, BMO_TEAR_BLUE, [(right_eye[0] + 2, ty_r), (right_eye[0] + 18, ty_r), (right_eye[0] + 10, ty_r - 14)])
 
-        # Chữ Zzz bay khi ngủ
         for z in self.zzz_particles:
             z_surf = self.font_zzz.render("Z", True, BMO_BLACK)
             z_surf.set_alpha(int(z['alpha']))
             surface.blit(z_surf, (int(z['x']), int(z['y'])))
 
-        # Nốt nhạc bay khi hát
         for n in self.music_notes:
             n_font = pygame.font.SysFont("Segoe UI Symbol, Arial", 24, bold=True)
             n_surf = n_font.render(n['char'], True, n['color'])
             n_surf.set_alpha(int(n['alpha']))
             surface.blit(n_surf, (int(n['x']), int(n['y'])))
 
-        # Hiệu ứng Glitch nếu có
         if self.current_expression == Expression.GLITCH:
             for _ in range(6):
                 gy = random.randint(0, self.height)
@@ -386,7 +443,6 @@ class FaceRenderer:
         words = text.split(' ')
         curr_line = ""
         
-        # Tự động ngắt dòng nếu câu quá dài
         for w in words:
             test_line = curr_line + (" " if curr_line else "") + w
             if self.font_subtitle.size(test_line)[0] < self.width - 80:
@@ -400,14 +456,12 @@ class FaceRenderer:
         total_h = len(lines) * 26 + padding * 2
         bar_y = self.height - total_h - 20
         
-        # Khung nền bán trong suốt bo góc
         bg_rect = pygame.Rect(30, bar_y, self.width - 60, total_h)
         bg_surf = pygame.Surface((bg_rect.width, bg_rect.height), pygame.SRCALPHA)
         pygame.draw.rect(bg_surf, (24, 28, 26, 210), (0, 0, bg_rect.width, bg_rect.height), border_radius=12)
         pygame.draw.rect(bg_surf, (141, 213, 201, 180), (0, 0, bg_rect.width, bg_rect.height), width=2, border_radius=12)
         surface.blit(bg_surf, bg_rect.topleft)
 
-        # Vẽ text
         for i, line in enumerate(lines):
             t_render = self.font_subtitle.render(line, True, BMO_WHITE)
             t_rect = t_render.get_rect(center=(self.width // 2, bar_y + padding + i * 26 + 10))
@@ -420,8 +474,166 @@ class FaceRenderer:
         pygame.draw.rect(surface, BMO_BODY_TEAL, (0, self.height - bezel_w, self.width, bezel_w))
         pygame.draw.rect(surface, BMO_BODY_TEAL, (0, 0, bezel_w, self.height))
         pygame.draw.rect(surface, BMO_BODY_TEAL, (self.width - bezel_w, 0, bezel_w, self.height))
-        # Khung viền đen nổi khối
         pygame.draw.rect(surface, BMO_DARK_TEAL, (bezel_w, bezel_w, self.width - 2*bezel_w, self.height - 2*bezel_w), 4, border_radius=8)
+
+    def draw_cartridge_swap(self, surface, old_name, new_name, progress):
+        """
+        Vẽ hoạt ảnh BMO 'Nôn mửa' băng game cũ & nhét băng game mới vào.
+        Progress từ 0.0 -> 1.0 (0.0-0.5: nhổ băng cũ ra; 0.5-1.0: cắm băng mới vào).
+        """
+        surface.fill(BMO_TEAL)
+        cx, cy = self.width // 2, self.height // 2
+        
+        # Mắt nhăn & mặt rung nhẹ khi nôn
+        shake_x = int(random.uniform(-4, 4)) if progress < 0.55 else 0
+        shake_y = int(random.uniform(-3, 3)) if progress < 0.55 else 0
+        
+        left_eye = (self.width // 3 + shake_x, self.height // 3 + 20 + shake_y)
+        right_eye = (2 * self.width // 3 + shake_x, self.height // 3 + 20 + shake_y)
+        
+        if progress < 0.5:
+            self.set_expression(Expression.VOMIT)
+        else:
+            self.set_expression(Expression.EXCITED)
+            
+        self._draw_eyes(surface, left_eye, right_eye, 24)
+        self._draw_cheeks(surface, left_eye, right_eye)
+        self._draw_mouth(surface)
+        
+        cart_w, cart_h = 130, 85
+        
+        # Giai đoạn 1: Băng cũ văng ra bên trái kèm tiếng "Khục... ọc!"
+        if progress < 0.5:
+            p1 = progress / 0.5
+            cart_x = cx - 20 - int(p1 * 340)
+            cart_y = cy + 40 - int(math.sin(p1 * math.pi) * 80) + int(p1 * 120)
+            rot_ang = int(p1 * 180)
+            
+            # Vẽ vệt khói/nước miếng bay theo băng
+            for i in range(4):
+                fx = cx - int(p1 * 200 * (i+1)/4)
+                fy = cy + 40 + random.randint(-15, 15)
+                pygame.draw.circle(surface, (120, 210, 180), (fx, fy), random.randint(6, 14))
+                
+            self._draw_cartridge_box(surface, cart_x, cart_y, old_name, color=(140, 145, 150), rot=rot_ang)
+            
+            # Bong bóng chữ vui nhộn
+            b_surf = self.font_battery_alert.render("🤮 Khục... ỌC!", True, (200, 40, 40))
+            surface.blit(b_surf, (cx - 160, cy - 80))
+            
+        # Giai đoạn 2: Băng mới từ trên bay vào cắm chặt vào miệng BMO
+        else:
+            p2 = (progress - 0.5) / 0.5
+            target_x = cx - cart_w // 2
+            target_y = cy + 20
+            start_x = self.width + 40
+            start_y = -80
+            
+            cart_x = int(start_x + (target_x - start_x) * p2)
+            cart_y = int(start_y + (target_y - start_y) * p2)
+            
+            self._draw_cartridge_box(surface, cart_x, cart_y, new_name, color=BMO_YELLOW, rot=int((1-p2)*60))
+            
+            if p2 > 0.7:
+                # Tia sáng 8-bit hào hứng
+                for ang in range(0, 360, 45):
+                    rad = math.radians(ang + self.anim_frame * 5)
+                    lx = cx + math.cos(rad) * 90
+                    ly = cy + 40 + math.sin(rad) * 90
+                    pygame.draw.line(surface, BMO_WHITE, (cx, cy + 40), (lx, ly), 3)
+                    
+            b_surf = self.font_battery_alert.render("🎮 CLICK-CLACK! Loading...", True, BMO_BLACK)
+            surface.blit(b_surf, b_surf.get_rect(center=(cx, cy - 80)))
+
+        if self.show_scanlines:
+            surface.blit(self.scanline_surface, (0, 0))
+
+    def _draw_cartridge_box(self, surface, x, y, label, color=BMO_YELLOW, rot=0):
+        """Vẽ hình chiếc băng game GameBoy / BMO cartridge."""
+        w, h = 130, 85
+        cart_surf = pygame.Surface((w, h), pygame.SRCALPHA)
+        
+        # Thân băng
+        pygame.draw.rect(cart_surf, color, (0, 0, w, h), border_radius=8)
+        pygame.draw.rect(cart_surf, BMO_BLACK, (0, 0, w, h), width=3, border_radius=8)
+        # Rãnh cắm phía dưới
+        pygame.draw.rect(cart_surf, (80, 80, 80), (12, h - 8, w - 24, 8), border_radius=2)
+        # Nhãn dán trên băng
+        pygame.draw.rect(cart_surf, BMO_WHITE, (10, 8, w - 20, h - 26), border_radius=4)
+        pygame.draw.rect(cart_surf, BMO_BLACK, (10, 8, w - 20, h - 26), width=2, border_radius=4)
+        
+        # Tên trò chơi trên nhãn
+        t_s = self.font_cartridge.render(label[:12], True, BMO_BLACK)
+        cart_surf.blit(t_s, t_s.get_rect(center=(w // 2, 28)))
+        sub_s = self.font_hud.render("BMO GAME", True, (120, 120, 120))
+        cart_surf.blit(sub_s, sub_s.get_rect(center=(w // 2, 48)))
+        
+        if rot != 0:
+            cart_surf = pygame.transform.rotate(cart_surf, rot)
+            
+        surface.blit(cart_surf, (x, y))
+
+    def draw_low_battery_screen(self, surface, p_hold_progress):
+        """
+        Vẽ màn hình BMO sập nguồn tối đen và cơ chế tương tác Thay 2 Cục Pin AA.
+        """
+        surface.fill((12, 16, 14)) # Đen tối màn hình tắt
+        cx = self.width // 2
+        cy = self.height // 2
+        
+        # 1. Mắt nhắm ngủ lịm / Màn hình tắt
+        pygame.draw.line(surface, (40, 55, 48), (cx - 150, cy - 100), (cx - 90, cy - 100), 5)
+        pygame.draw.line(surface, (40, 55, 48), (cx + 90, cy - 100), (cx + 150, cy - 100), 5)
+        
+        # 2. Tiêu đề cảnh báo
+        alert_col = BMO_HEART_RED if (self.anim_frame // 20) % 2 == 0 else (160, 40, 40)
+        t_alert = self.font_battery_alert.render("🪫 BMO SẬP NGUỒN (0% BATTERY)", True, alert_col)
+        surface.blit(t_alert, t_alert.get_rect(center=(cx, 60)))
+        
+        sub_txt = self.font_subtitle.render("BMO: 'BMO cần pin... BMO is losing power...'", True, (160, 180, 175))
+        surface.blit(sub_txt, sub_txt.get_rect(center=(cx, 95)))
+
+        # 3. Khay chứa 2 viên pin AA của BMO
+        slot_w, slot_h = 240, 110
+        pygame.draw.rect(surface, (25, 34, 30), (cx - slot_w//2, cy - 20, slot_w, slot_h), border_radius=10)
+        pygame.draw.rect(surface, (60, 85, 75), (cx - slot_w//2, cy - 20, slot_w, slot_h), width=3, border_radius=10)
+        
+        # Nhãn khay pin
+        k_txt = self.font_hud.render("AA BATTERY COMPARTMENT (x2)", True, (120, 160, 145))
+        surface.blit(k_txt, k_txt.get_rect(center=(cx, cy - 6)))
+
+        # Vẽ 2 viên pin AA đang được nhét vào
+        p_pct = min(1.0, max(0.0, p_hold_progress))
+        
+        for i, py_offset in enumerate([-18, 22]):
+            bx = cx - 80 + int((1.0 - p_pct) * 120)
+            by_pos = cy + 24 + py_offset
+            # Thân pin AA vàng/xanh
+            pygame.draw.rect(surface, BMO_YELLOW, (bx, by_pos, 140, 26), border_radius=4)
+            pygame.draw.rect(surface, (180, 140, 20), (bx, by_pos, 140, 26), width=2, border_radius=4)
+            pygame.draw.rect(surface, BMO_BLUE, (bx, by_pos, 40, 26), border_radius=4)
+            # Cực dương
+            pygame.draw.rect(surface, (200, 200, 200), (bx + 140, by_pos + 6, 6, 14), border_radius=2)
+            # Chữ "AA"
+            aa_s = self.font_hud.render("AA +", True, BMO_BLACK)
+            surface.blit(aa_s, (bx + 55, by_pos + 4))
+
+        # 4. Thanh tiến trình thay pin
+        bar_w, bar_h = 320, 22
+        bar_x = cx - bar_w // 2
+        bar_y = cy + 120
+        pygame.draw.rect(surface, (30, 40, 36), (bar_x, bar_y, bar_w, bar_h), border_radius=6)
+        fill_w = int(bar_w * p_pct)
+        if fill_w > 0:
+            pygame.draw.rect(surface, BMO_GREEN, (bar_x, bar_y, fill_w, bar_h), border_radius=6)
+        pygame.draw.rect(surface, BMO_WHITE, (bar_x, bar_y, bar_w, bar_h), width=2, border_radius=6)
+
+        # 5. Hướng dẫn bấm phím
+        ins_surf = self.font_subtitle.render("👉 GIỮ PHÍM [P] HOẶC [SPACE] ĐỂ LẮP PIN MỚI", True, BMO_YELLOW)
+        surface.blit(ins_surf, ins_surf.get_rect(center=(cx, cy + 175)))
+        
+        esc_surf = self.font_hud.render("[ESC]: Buộc hồi sinh ngay lập tức", True, (110, 135, 125))
+        surface.blit(esc_surf, esc_surf.get_rect(center=(cx, self.height - 35)))
 
     def check_interaction_click(self, pos):
         """Xử lý sự kiện nhấp chuột tương tác lên khuôn mặt BMO."""

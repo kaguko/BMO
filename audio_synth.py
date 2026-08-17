@@ -105,6 +105,29 @@ class SoundSynthesizer:
             self._sound_cache['win'] = self._generate_slide_wave(440, 880, 0.4, 'square')
             self._sound_cache['game_over'] = self._generate_slide_wave(400, 100, 0.5, 'triangle')
             self._sound_cache['alarm'] = self._generate_wave(880, 0.25, 'square')
+
+            # 6. BMO Special "Độc lạ" SFX
+            # - Nôn mửa băng game: "Khục... ọc!" (Noise burst + downward burp)
+            dur_barf = 0.38
+            t_barf = np.linspace(0, dur_barf, int(SAMPLE_RATE * dur_barf), endpoint=False)
+            split_b = int(len(t_barf) * 0.42)
+            n_part = np.random.uniform(-0.9, 0.9, split_b) * np.linspace(1.0, 0.3, split_b)
+            t_sub = t_barf[split_b:]
+            s_part = np.sin(2 * np.pi * np.linspace(220, 55, len(t_sub)) * t_sub) * (1 - (t_sub - t_sub[0])/(dur_barf * 0.58))
+            barf_wave = np.concatenate((n_part, s_part))
+            barf_pcm = (barf_wave * 32767 * self.volume).astype(np.int16)
+            self._sound_cache['barf'] = pygame.sndarray.make_sound(np.column_stack((barf_pcm, barf_pcm)))
+
+            # - Nhét băng game mới: "Click-Clack!"
+            click_1 = self._generate_wave(800, 0.04, 'square', decay=True)
+            self._sound_cache['cartridge_insert'] = self._generate_slide_wave(300, 750, 0.12, 'square')
+
+            # - Sập nguồn (Power down / Low battery)
+            self._sound_cache['power_down'] = self._generate_slide_wave(520, 60, 0.65, 'sawtooth')
+
+            # - Thay pin & Khởi động lại (Power up)
+            self._sound_cache['battery_install'] = self._generate_slide_wave(400, 700, 0.1, 'triangle')
+            self._sound_cache['power_up'] = self._generate_slide_wave(200, 1050, 0.45, 'square')
         except Exception as e:
             print(f"[SoundSynth] Warning pre-generating sounds: {e}")
 

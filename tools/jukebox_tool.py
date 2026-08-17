@@ -8,7 +8,7 @@ import math
 from ..constants import (
     SCREEN_WIDTH, SCREEN_HEIGHT, BMO_TEAL, BMO_BODY_TEAL,
     BMO_DARK_TEAL, BMO_BLACK, BMO_WHITE, BMO_YELLOW,
-    BMO_BLUE, BMO_GREEN, BMO_HEART_RED
+    BMO_BLUE, BMO_GREEN, BMO_HEART_RED, BMO_ROSE
 )
 from ..audio_synth import synth
 
@@ -73,6 +73,31 @@ class JukeboxTool:
                     self._play_piano_key(i)
                     
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            mx, my = event.pos
+            if my < 45 and mx > self.width - 100:
+                synth.stop_music()
+                self.exit_requested = True
+                return
+            elif 180 <= my <= 230:
+                # Nhấp vào tên bài hát -> Đổi phát bài hát mẫu
+                if self.now_playing == "None":
+                    self.now_playing = "Adventure Time Theme"
+                    synth.play_adventure_theme()
+                elif self.now_playing == "Adventure Time Theme":
+                    self.now_playing = "Time Is An Illusion"
+                    synth.play_bmo_song()
+                else:
+                    self.now_playing = "None"
+                    synth.stop_music()
+                return
+            elif my < 90 and mx < 200:
+                # Đổi dạng sóng
+                waves = ['square', 'triangle', 'sawtooth', 'sine']
+                curr_idx = waves.index(self.wave_type)
+                self.wave_type = waves[(curr_idx + 1) % len(waves)]
+                synth.play('chirp')
+                return
+
             # Nhấp chuột vào phím đàn
             key_w = (self.width - 80) // len(PIANO_KEYS)
             start_x = 40

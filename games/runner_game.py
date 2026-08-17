@@ -77,6 +77,21 @@ class RunnerGame(BaseGame):
                     self.chop_timer = 15
                     synth.play('chop')
 
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            # Hỗ trợ cảm ứng màn hình điện thoại / chuột
+            if event.pos[0] > self.width * 0.65:
+                # Chạm bên phải màn hình -> BMO CHOP!
+                if not self.is_chopping:
+                    self.is_chopping = True
+                    self.chop_timer = 15
+                    synth.play('chop')
+            else:
+                # Chạm bên trái màn hình -> Nhảy
+                if not self.is_jumping:
+                    self.velocity_y = -14
+                    self.is_jumping = True
+                    synth.play('jump')
+
     def update(self):
         if self.is_game_over or self.is_paused:
             return

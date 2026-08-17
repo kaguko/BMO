@@ -30,10 +30,16 @@ class BaseGame:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 self.exit_requested = True
-            elif event.key == pygame.K_r and self.is_game_over:
+            elif event.key in [pygame.K_r, pygame.K_SPACE, pygame.K_RETURN] and self.is_game_over:
                 self.reset()
             elif event.key == pygame.K_p:
                 self.is_paused = not self.is_paused
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            # Nhấp vào góc trên phải ESC để thoát hoặc nhấp màn hình khi Game Over để chơi lại
+            if event.pos[1] < 40 and event.pos[0] > self.width - 120:
+                self.exit_requested = True
+            elif self.is_game_over:
+                self.reset()
 
     def update(self):
         """Cập nhật logic game từng khung hình."""

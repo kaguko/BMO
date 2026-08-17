@@ -12,9 +12,10 @@ from .constants import Expression
 def normalize_text(text):
     """Chuẩn hóa văn bản: viết thường, loại bỏ dấu tiếng Việt để so khớp từ khóa linh hoạt."""
     text = text.lower().strip()
-    # Loại bỏ dấu
+    # Loại bỏ dấu và chuẩn hóa chữ đ
     nfkd_form = unicodedata.normalize('NFKD', text)
     no_accent = "".join([c for c in nfkd_form if not unicodedata.combining(c)])
+    no_accent = no_accent.replace('đ', 'd').replace('Đ', 'd')
     return text, no_accent
 
 class DialogEngine:
@@ -230,7 +231,43 @@ class DialogEngine:
         if "rainicorn" in raw or "bay" in raw:
             return ("Launching Lady Rainicorn Sky Flap!", Expression.EXCITED, "win", "start_game_rainicorn")
 
-        # 19. ĐỔI BIỂU CẢM QUA LỆNH
+        # 19. CHẾ ĐỘ FOOTBALL
+        if any(k in raw for k in ["football", "guong", "mirror", "ban trong guong"]):
+            return (
+                "Football is my secret best friend in the mirror! Let's talk to Football!",
+                Expression.FOOTBALL,
+                "win",
+                "football_mode"
+            )
+
+        # 20. BMO SẬP NGUỒN / HẾT PIN / LOW BATTERY
+        if any(k in raw for k in ["het pin", "low battery", "sap nguon", "pin yeu", "pin"]):
+            return (
+                "BMO cần pin... BMO is losing power... please change my AA batteries!",
+                Expression.SLEEPY,
+                "power_down",
+                "trigger_low_battery"
+            )
+
+        # 21. THAY PIN / SẠC PIN
+        if any(k in raw for k in ["thay pin", "sac pin", "lap pin", "battery", "recharge"]):
+            return (
+                "Yay! BMO has fresh AA batteries! Power 100%!",
+                Expression.HEART_EYES,
+                "power_up",
+                "recharge_battery"
+            )
+
+        # 22. NÔN BĂNG GAME / ĐỔI BĂNG GAME
+        if any(k in raw for k in ["non bang", "nho bang", "spit cartridge", "doi game"]):
+            return (
+                "Khục... Ọc! BMO is swapping game cartridges for you!",
+                Expression.VOMIT,
+                "barf",
+                "demo_cartridge_swap"
+            )
+
+        # 23. ĐỔI BIỂU CẢM QUA LỆNH
         if "vui" in raw or "happy" in raw:
             return ("BMO is super happy!", Expression.HAPPY, "chirp", None)
         if "cuoi" in raw or "laugh" in raw:
@@ -242,7 +279,7 @@ class DialogEngine:
         if "glitch" in raw or "loi" in raw:
             return ("01000010 01001101 01001111 GLITCH!", Expression.GLITCH, "hit", None)
 
-        # 20. CÂU TRẢ LỜI MẶC ĐỊNH THÂN THIỆN
+        # 24. CÂU TRẢ LỜI MẶC ĐỊNH THÂN THIỆN
         fallback_responses = [
             ("Yay BMO! I heard you say that! Tell me more or let's play a game!", Expression.HAPPY, "chirp"),
             ("That is fascinating! Did you know robots can feel happiness too?", Expression.EXCITED, "coin"),

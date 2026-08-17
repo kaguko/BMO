@@ -1,12 +1,24 @@
 """
 BMO Constants and Theme Configuration
 Màu sắc, kích thước, phông chữ và các hằng số dùng chung cho BMO.
+Hỗ trợ cả Desktop (800x600) lẫn Mobile Android (portrait 480x854).
 """
+import os
 import pygame
 
-# Kích thước cửa sổ
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+# Phát hiện môi trường Android / Mobile
+_IS_ANDROID = 'ANDROID_ARGUMENT' in os.environ or 'ANDROID_ROOT' in os.environ
+
+if _IS_ANDROID:
+    # Màn hình mobile portrait chuẩn (sẽ fullscreen trên thiết bị thật)
+    SCREEN_WIDTH = 480
+    SCREEN_HEIGHT = 854
+    IS_MOBILE = True
+else:
+    SCREEN_WIDTH = 800
+    SCREEN_HEIGHT = 600
+    IS_MOBILE = False
+
 FPS = 60
 
 # Bảng màu BMO chuẩn hoạt hình Adventure Time
@@ -42,25 +54,30 @@ class Expression:
     SINGING = "singing"
     FOOTBALL = "football"
     GLITCH = "glitch"
+    VOMIT = "vomit"
 
 # Các chế độ hoạt động chính (App Modes)
 class AppMode:
-    FACE = "face"           # Chế độ mặt tương tác & trò chuyện
-    GAMES = "games"         # Menu / Mini-games
-    TOOLS = "tools"         # Công cụ (Timer, Jukebox, Mirror)
-    SETTINGS = "settings"   # Cài đặt âm thanh, giọng nói, scanlines
-    HELP = "help"           # Hướng dẫn sử dụng phím tắt
+    FACE = "face"                     # Chế độ mặt tương tác & trò chuyện
+    GAMES = "games"                   # Mini-games
+    TOOLS = "tools"                   # Công cụ (Timer, Jukebox, Mirror)
+    SETTINGS = "settings"             # Cài đặt âm thanh, giọng nói, scanlines
+    HELP = "help"                     # Hướng dẫn sử dụng phím tắt
+    LOW_BATTERY = "low_battery"       # BMO sập nguồn hết pin & Thay pin
+    CARTRIDGE_SWAP = "cartridge_swap" # Chuyển cảnh nhổ/nhét băng game
 
 # Phím tắt điều khiển nhanh
 HOTKEYS_INFO = [
-    ("ESC", "Mở Menu / Quay lại"),
-    ("ENTER", "Mở thanh Chat / Nhập lệnh"),
-    ("SPACE", "BMO chào / BMO Chop!"),
-    ("1 - 4", "Chơi nhanh 4 Mini-Games"),
+    ("ESC / TAB", "Mở/Đóng Menu điều khiển chính"),
+    ("ENTER", "Mở thanh Chat trò chuyện với BMO"),
+    ("SPACE", "BMO chào / BMO Chop! / Tương tác"),
+    ("1 - 4", "Chơi 4 Mini-Games (Kèm hiệu ứng nôn băng)"),
     ("5 - 7", "Mở Timer / Jukebox / Gương Football"),
-    ("E", "Đổi biểu cảm ngẫu nhiên"),
-    ("V", "Đổi giọng nói TTS"),
-    ("M", "Bật/Tắt âm thanh SFX"),
-    ("C", "Bật/Tắt hiệu ứng CRT Scanlines"),
-    ("H", "Xem hướng dẫn chi tiết"),
+    ("L", "Giả lập BMO Sập nguồn (Hết pin)"),
+    ("P", "Thay 2 pin AA khi BMO hết pin"),
+    ("E", "Đổi biểu cảm khuôn mặt ngẫu nhiên"),
+    ("V", "Đổi chế độ giọng nói TTS"),
+    ("M", "Bật/Tắt âm thanh SFX 8-bit"),
+    ("C / B", "Bật/Tắt CRT Scanlines & Khung Bezel"),
+    ("H", "Xem bảng hướng dẫn chi tiết"),
 ]
