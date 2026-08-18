@@ -85,13 +85,21 @@ jobs:
           touch ~/.android/repositories.cfg
           yes | ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
-      # 7. Build APK debug với Buildozer
+      # 7. Khởi tạo buildozer.spec nếu chưa có
+      - name: 🔧 Initialize Buildozer spec
+        run: |
+          if [ ! -f buildozer.spec ]; then
+            buildozer init
+          fi
+
+      # 8. Build APK debug với Buildozer
       - name: 🏗️ Build APK (Debug)
         run: |
+          test -f buildozer.spec
           buildozer android debug
 
 
-      # 8. Upload APK sebagai artifact
+      # 9. Upload APK sebagai artifact
       - name: 📤 Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
@@ -99,7 +107,7 @@ jobs:
           path: bin/*.apk
           retention-days: 30
 
-      # 9. Hiển thị thông tin APK
+      # 10. Hiển thị thông tin APK
       - name: 📊 APK Build Summary
         if: success()
         run: |
