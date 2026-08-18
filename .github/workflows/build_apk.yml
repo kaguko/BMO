@@ -89,10 +89,7 @@ jobs:
       - name: 🏗️ Build APK (Debug)
         run: |
           buildozer android debug
-        env:
-          BUILDOZER_BUILD_DIR: .buildozer
-          ANDROIDAPI: "33"
-          ANDROIDMINAPI: "26"
+
 
       # 8. Upload APK sebagai artifact
       - name: 📤 Upload APK artifact
