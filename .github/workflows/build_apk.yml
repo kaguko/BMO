@@ -88,6 +88,7 @@ jobs:
       # 7. Build APK debug với Buildozer
       - name: 🏗️ Build APK (Debug)
         run: |
+          cd BMO
           buildozer android debug
         env:
           BUILDOZER_BUILD_DIR: .buildozer
@@ -99,7 +100,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: BMO-Adventure-Time-APK
-          path: bin/*.apk
+          path: BMO/bin/*.apk
           retention-days: 30
 
       # 9. Hiển thị thông tin APK
@@ -107,4 +108,4 @@ jobs:
         if: success()
         run: |
           echo "✅ Build thành công!"
-          ls -lh bin/*.apk 2>/dev/null && echo "📱 APK đã sẵn sàng để tải về!" || echo "⚠️ Không tìm thấy APK"
+          ls -lh BMO/bin/*.apk 2>/dev/null && echo "📱 APK đã sẵn sàng để tải về!" || echo "⚠️ Không tìm thấy APK"
