@@ -78,18 +78,11 @@ jobs:
           restore-keys: |
             android-sdk-ndk-${{ runner.os }}-
 
-      # 6. Chấp nhận Android SDK licenses
-      - name: ✅ Accept Android SDK licenses
-        run: |
-          mkdir -p ~/.android
-          touch ~/.android/repositories.cfg
-          yes | ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses || true
-
-      # 7. Build APK debug với Buildozer
+     # 6 & 7. Build APK debug trực tiếp (Buildozer tự động tải SDK và xử lý license)
       - name: 🏗️ Build APK (Debug)
         run: |
           cd BMO
-          buildozer android debug
+          yes | buildozer android debug
 
 
       # 8. Upload APK sebagai artifact
