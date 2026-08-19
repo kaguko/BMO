@@ -78,46 +78,24 @@ jobs:
           restore-keys: |
             android-sdk-ndk-${{ runner.os }}-
 
-<<<<<<< HEAD
-     # 6 & 7. Build APK debug trực tiếp (Buildozer tự động tải SDK và xử lý license)
+      # 6 & 7. Build APK debug trực tiếp (Buildozer tự động tải SDK và xử lý license)
       - name: 🏗️ Build APK (Debug)
         run: |
           cd BMO
           yes | buildozer android debug
-=======
-      # 6. Chấp nhận Android SDK licenses
-      - name: ✅ Accept Android SDK licenses
-        run: |
-          mkdir -p ~/.android
-          touch ~/.android/repositories.cfg
-          yes | ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses || true
-
-      # 7. Khởi tạo buildozer.spec nếu chưa có
-      - name: 🔧 Initialize Buildozer spec
-        run: |
-          if [ ! -f buildozer.spec ]; then
-            buildozer init
-          fi
-
-      # 8. Build APK debug với Buildozer
-      - name: 🏗️ Build APK (Debug)
-        run: |
-          test -f buildozer.spec
-          buildozer android debug
->>>>>>> 1bb2eab54594e068aca06fe0db3291127ca98543
 
 
-      # 9. Upload APK sebagai artifact
+      # 8. Upload APK sebagai artifact
       - name: 📤 Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: BMO-Adventure-Time-APK
-          path: bin/*.apk
+          path: BMO/bin/*.apk
           retention-days: 30
 
-      # 10. Hiển thị thông tin APK
+      # 9. Hiển thị thông tin APK
       - name: 📊 APK Build Summary
         if: success()
         run: |
           echo "✅ Build thành công!"
-          ls -lh bin/*.apk 2>/dev/null && echo "📱 APK đã sẵn sàng để tải về!" || echo "⚠️ Không tìm thấy APK"
+          ls -lh BMO/bin/*.apk 2>/dev/null && echo "📱 APK đã sẵn sàng để tải về!" || echo "⚠️ Không tìm thấy APK"
